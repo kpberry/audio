@@ -5,9 +5,10 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-pub mod raytracing;
-pub mod reverb;
-pub mod tuning;
+mod raytracing;
+mod reverb;
+mod tuning;
+mod convolution;
 
 use reverb::demo;
 

@@ -1,54 +1,36 @@
 use std::f64::consts::PI;
-use num::complex::Complex;
+
+use num::integer::Roots;
 use num::Zero;
-
-pub fn _fft(xs: &Vec<Complex<f64>>, sign: f64) -> Vec<Complex<f64>> {
-    let n = xs.len();
-    assert!(n.is_power_of_two());
-
-    if n == 1 {
-        vec![xs[0]]
-    } else {
-        let xs_even = _fft(&xs.iter().cloned().step_by(2).collect(), sign);
-        let xs_odd = _fft(&xs.iter().cloned().skip(1).step_by(2).collect(), sign);
-
-        let mut result = vec![Complex::new(0.0, 0.0); n];
-        let n_inv = 1.0 / n as f64;
-        let half_n = n >> 1;
-
-        for k in 0..half_n {
-            let p = xs_even[k];
-            let q = Complex::new(0.0, sign * 2.0 * PI * n_inv * (k as f64)).exp() * xs_odd[k];
-            result[k] = p + q;
-            result[k + half_n] = p - q;
-        }
-        result
-    }
-}
-
-pub fn fft(xs: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
-    _fft(xs, -1.0)
-}
-
-pub fn ifft(xs: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
-    let n = xs.len() as f64;
-    _fft(xs, 1.0).iter().map(|x| x / n).collect()
-}
+use rustfft::{Direction, Fft, FftPlanner, num_complex::Complex};
 
 pub fn fft_convolve(xs: &Vec<Complex<f64>>, ys: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
+    // the lengths here are very important; don't change them unless you know what you're doing
     let len = (xs.len() + ys.len() - 1);
-    let xs = xs.iter().cloned()
+    let buf_len = len.next_power_of_two();
+    let mut planner = FftPlanner::new();
+    let fft = planner.plan_fft_forward(buf_len);
+    let ifft = planner.plan_fft_inverse(buf_len);
+
+    let mut fxs: Vec<Complex<f64>> = xs.iter().cloned()
         .chain(std::iter::repeat(Complex::zero()))
-        .take(len.next_power_of_two())
+        .take(buf_len)
         .collect();
-    let ys = ys.iter().cloned()
+    fft.process(&mut fxs);
+
+    let mut fys: Vec<Complex<f64>> = ys.iter().cloned()
         .chain(std::iter::repeat(Complex::zero()))
-        .take(len.next_power_of_two())
+        .take(buf_len)
         .collect();
-    let fxs = fft(&xs);
-    let fys = fft(&ys);
-    let product = fxs.iter().zip(fys).map(|(x, y)| x * y).collect();
-    ifft(&product).into_iter().take(len).collect()
+    fft.process(&mut fys);
+
+    // we have to manually normalize before doing the inverse fft
+    let norm = 1. / buf_len as f64;
+    let mut normed_product: Vec<Complex<f64>> = fxs.iter().zip(fys)
+        .map(|(x, y)| x * y * norm)
+        .collect();
+    ifft.process(&mut normed_product);
+    normed_product.into_iter().take(len).collect()
 }
 
 pub fn rfft_convolve(xs: &Vec<f64>, ys: &Vec<f64>) -> Vec<f64> {
@@ -56,17 +38,6 @@ pub fn rfft_convolve(xs: &Vec<f64>, ys: &Vec<f64>) -> Vec<f64> {
         &xs.iter().map(|&x| Complex::new(x, 0.0)).collect(),
         &ys.iter().map(|&y| Complex::new(y, 0.0)).collect(),
     ).iter().map(|p| p.re).collect()
-}
-
-#[test]
-fn test_fft() {
-    let fftd = fft(&vec![1., 2., 3., 4.].into_iter().map(|r| Complex::new(r, 0.)).collect());
-    let expected = vec![
-        Complex::new(10., 0.), Complex::new(-2., 2.),
-        Complex::new(-2., 0.), Complex::new(-2., -2.)
-    ];
-    assert_eq!(expected.len(), fftd.len());
-    assert!(fftd.iter().zip(expected).all(|(a, b)| (a - b).norm() < 1e-7));
 }
 
 #[test]
