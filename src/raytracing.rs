@@ -502,7 +502,7 @@ pub fn profile_room(
         let mut last_target_index: Option<usize> = None;
         let mut distance_traveled = 0.;
 
-        for n in 0..bounces {
+        for n in 0..=bounces {
             if distance_traveled * inv_speed_of_sound > max_delay {
                 break;
             }
@@ -510,17 +510,15 @@ pub fn profile_room(
             let mut closest_intersection: Option<P> = None;
             let mut closest_intersection_target_index: Option<usize> = None;
             for (i, &obj) in room.iter().enumerate() {
-                if last_target_index.unwrap_or(usize::max_value()) == i {
+                if last_target_index.unwrap_or(usize::MAX) == i {
                     continue;
                 }
                 let intersection = obj.ray_intersection(&r);
-                let mut should_update = false;
-                if (&closest_intersection).is_none() {
-                    should_update = true;
-                } else if let (Some(i), Some(ci)) = (&intersection, &closest_intersection) {
-                    should_update = r.a.dist(i) < r.a.dist(ci);
+                let mut closer = closest_intersection.is_none();
+                if let (Some(i), Some(ci)) = (&intersection, &closest_intersection) {
+                    closer = r.a.dist(i) < r.a.dist(ci);
                 }
-                if should_update {
+                if closer {
                     closest_intersection = intersection;
                     closest_intersection_target_index = Some(i);
                 }
