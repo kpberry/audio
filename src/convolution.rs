@@ -59,7 +59,7 @@ pub fn rfft_convolve(xs: &Vec<f64>, ys: &Vec<f64>) -> Vec<f64> {
 }
 
 #[test]
-fn test_rft() {
+fn test_fft() {
     let fftd = fft(&vec![1., 2., 3., 4.].into_iter().map(|r| Complex::new(r, 0.)).collect());
     let expected = vec![
         Complex::new(10., 0.), Complex::new(-2., 2.),
