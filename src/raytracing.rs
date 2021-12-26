@@ -1,5 +1,6 @@
-use std::fmt::{Display, Formatter};
 use std::{fmt, ops};
+use std::f64::consts::PI;
+use std::fmt::{Display, Formatter};
 
 use rand::Rng;
 
@@ -467,12 +468,54 @@ pub fn make_box(w: f64, h: f64, d: f64, c: P, f: bool) -> Vec<Q> {
     return result;
 }
 
+pub fn forward_ray_trace(
+    r: &L,
+    geometry: &Vec<&dyn Visible>,
+    target: &dyn Visible,
+    hits: &mut Vec<(P, f64, usize)>,
+    bounces: usize,
+    max_bounces: usize,
+    distance: f64,
+    max_distance: f64,
+) {
+    if distance > max_distance || bounces > max_bounces {
+        return;
+    }
+
+    let mut closest: Option<&dyn Visible> = None;
+    let mut closest_distance: f64 = f64::MAX;
+    for obj in geometry {
+        if let Some(intersection) = obj.ray_intersection(&r) {
+            let intersection_distance = r.a.dist(&intersection);
+            if 1e-7 < intersection_distance && intersection_distance < closest_distance {
+                closest = Some(*obj);
+                closest_distance = intersection_distance;
+            }
+        }
+    }
+
+    if let Some(hit) = target.ray_intersection(&r) {
+        let hit_dist = r.a.dist(&hit);
+        if hit_dist <= closest_distance {
+            hits.push((hit, distance + hit_dist, bounces));
+        }
+    }
+
+    if let Some(obj) = closest {
+        if let Some(reflection) = obj.ray_reflection(&r) {
+            forward_ray_trace(&reflection, geometry, target, hits,
+                              bounces + 1, max_bounces,
+                              distance + closest_distance, max_distance);
+        };
+    }
+}
+
 pub fn profile_room(
     room: &Vec<&dyn Visible>,
     speaker: &P,
     microphone: &S,
-    samples: i32,
-    bounces: i32,
+    samples: usize,
+    max_bounces: usize,
     max_delay: f64,
     speed_of_sound: f64,
     decay: f64,
@@ -480,15 +523,15 @@ pub fn profile_room(
     sample_rate: f64,
 ) -> Vec<f64> {
     let mut rng = rand::thread_rng();
-    let pi = std::f64::consts::PI as f64;
 
     let mut hits = Vec::new();
+    let max_distance = max_delay * speed_of_sound;
     let inv_speed_of_sound = 1.0 / speed_of_sound;
 
     for o in 0..samples {
         println!("{}", o);
         let u: f64 = rng.gen_range(-1.0..1.0);
-        let t: f64 = rng.gen_range(0.0..pi);
+        let t: f64 = rng.gen_range(0.0..PI);
 
         let x = (1. - u * u) * t.cos();
         let y = (1. - u * u) * t.sin();
@@ -500,48 +543,18 @@ pub fn profile_room(
             b: speaker + &p,
         };
 
-        let mut distance_traveled = 0.;
-        for n in 0..=bounces {
-            if distance_traveled * inv_speed_of_sound > max_delay {
-                break;
-            }
-
-            let mut closest: Option<&dyn Visible> = None;
-            let mut closest_distance: f64 = f64::MAX;
-            for obj in room {
-                if let Some(intersection) = obj.ray_intersection(&r) {
-                    let distance = r.a.dist(&intersection);
-                    if 1e-7 < distance && distance < closest_distance {
-                        closest = Some(*obj);
-                        closest_distance = distance;
-                    }
-                }
-            }
-
-            if let Some(hit) = microphone.ray_intersection(&r) {
-                let hit_dist = r.a.dist(&hit);
-                if hit_dist <= closest_distance {
-                    hits.push((n, hit_dist + distance_traveled));
-                }
-            }
-
-            if let Some(obj) = closest {
-                distance_traveled += closest_distance;
-                if let Some(reflection) = obj.ray_reflection(&r) {
-                    r = reflection;
-                };
-            }
-        }
+        forward_ray_trace(&r, room, microphone, &mut hits,
+                          0, max_bounces, 0., max_distance);
     }
 
     let sample_timings: Vec<usize> = hits
         .iter()
-        .map(|(_, d)| (sample_rate * d * inv_speed_of_sound).round() as usize)
+        .map(|(_, d, _)| (sample_rate * d * inv_speed_of_sound).round() as usize)
         .collect();
     // microphones measure sound pressure, which decays linearly with distance
     let pressures: Vec<f64> = hits
         .iter()
-        .map(|(b, d)| base_impulse / d * (1. - decay).powi(*b))
+        .map(|(_, d, b)| base_impulse / d * (1. - decay).powi(*b as i32))
         .collect();
     let max_timing: usize = sample_timings.iter().cloned().fold(0, usize::max) + 1;
     let mut kernel = vec![0.; max_timing];
