@@ -518,16 +518,15 @@ pub fn profile_room(
                 }
             }
 
+            if let Some(hit) = microphone.ray_intersection(&r) {
+                let hit_dist = r.a.dist(&hit);
+                if hit_dist <= closest_distance {
+                    hits.push((n, hit_dist + distance_traveled));
+                }
+            }
+
             if let Some(obj) = closest {
                 distance_traveled += closest_distance;
-
-                if let Some(hit) = microphone.ray_intersection(&r) {
-                    let hit_dist = r.a.dist(&hit);
-                    if hit_dist <= closest_distance {
-                        hits.push((n, hit_dist + distance_traveled));
-                    }
-                }
-
                 if let Some(reflection) = obj.ray_reflection(&r) {
                     r = reflection;
                 };
