@@ -549,15 +549,16 @@ pub fn profile_room(
         .iter()
         .map(|(_, d)| (sample_rate * d * inv_speed_of_sound).round() as usize)
         .collect();
-    let energies: Vec<f64> = hits
+    // microphones measure sound pressure, which decays linearly with distance
+    let pressures: Vec<f64> = hits
         .iter()
-        .map(|(b, d)| base_impulse / ((d + 1.) * (d + 1.)) * (1. - decay).powi(*b))
+        .map(|(b, d)| base_impulse / d * (1. - decay).powi(*b))
         .collect();
     let max_timing: usize = sample_timings.iter().cloned().fold(0, usize::max) + 1;
     let mut kernel = vec![0.; max_timing];
     sample_timings
         .iter()
-        .zip(energies)
+        .zip(pressures)
         .for_each(|(t, e)| kernel[*t] += e);
     let max_k = kernel.iter().cloned().fold(1., f64::max);
     let kernel = kernel.iter().map(|k| k / max_k).collect();
