@@ -31,7 +31,9 @@ pub fn forward_ray_trace(
     if let Some(hit) = target.ray_intersection(&r) {
         let hit_dist = r.a.dist(&hit);
         if hit_dist <= closest_distance {
-            hits.push((hit, distance + hit_dist, bounces));
+            // TODO it seems like this should be distance + hit_dist, but that causes a weird
+            //  phasing effect for some reason
+            hits.push((hit, distance + closest_distance + hit_dist, bounces));
         }
     }
 
