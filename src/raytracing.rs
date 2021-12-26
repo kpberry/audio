@@ -47,7 +47,7 @@ pub fn forward_ray_trace(
 pub fn profile_room(
     room: &Vec<&dyn Visible>,
     speaker: &P,
-    microphone: &S,
+    microphone: &dyn Visible,
     samples: usize,
     max_bounces: usize,
     max_delay: f64,
