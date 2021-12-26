@@ -6,7 +6,7 @@ use rustfft::{Direction, Fft, FftPlanner, num_complex::Complex};
 
 pub fn fft_convolve(xs: &Vec<Complex<f64>>, ys: &Vec<Complex<f64>>) -> Vec<Complex<f64>> {
     // the lengths here are very important; don't change them unless you know what you're doing
-    let len = (xs.len() + ys.len() - 1);
+    let len = xs.len() + ys.len() - 1;
     let buf_len = len.next_power_of_two();
     let mut planner = FftPlanner::new();
     let fft = planner.plan_fft_forward(buf_len);
