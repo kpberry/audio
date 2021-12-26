@@ -499,46 +499,36 @@ pub fn profile_room(
             a: speaker.clone(),
             b: speaker + &p,
         };
-        let mut last_target_index: Option<usize> = None;
-        let mut distance_traveled = 0.;
 
+        let mut distance_traveled = 0.;
         for n in 0..=bounces {
             if distance_traveled * inv_speed_of_sound > max_delay {
                 break;
             }
 
-            let mut closest_intersection: Option<P> = None;
-            let mut closest_intersection_target_index: Option<usize> = None;
-            for (i, &obj) in room.iter().enumerate() {
-                if last_target_index.unwrap_or(usize::MAX) == i {
-                    continue;
-                }
-                let intersection = obj.ray_intersection(&r);
-                let mut closer = closest_intersection.is_none();
-                if let (Some(i), Some(ci)) = (&intersection, &closest_intersection) {
-                    closer = r.a.dist(i) < r.a.dist(ci);
-                }
-                if closer {
-                    closest_intersection = intersection;
-                    closest_intersection_target_index = Some(i);
+            let mut closest: Option<&dyn Visible> = None;
+            let mut closest_distance: f64 = f64::MAX;
+            for obj in room {
+                if let Some(intersection) = obj.ray_intersection(&r) {
+                    let distance = r.a.dist(&intersection);
+                    if 1e-7 < distance && distance < closest_distance {
+                        closest = Some(*obj);
+                        closest_distance = distance;
+                    }
                 }
             }
 
-            if let (Some(ci), Some(ci_t_index)) =
-                (closest_intersection, closest_intersection_target_index)
-            {
-                let intersection_dist = r.a.dist(&ci);
-                distance_traveled += intersection_dist;
-                last_target_index = closest_intersection_target_index;
+            if let Some(obj) = closest {
+                distance_traveled += closest_distance;
 
                 if let Some(hit) = microphone.ray_intersection(&r) {
                     let hit_dist = r.a.dist(&hit);
-                    if hit_dist <= intersection_dist {
+                    if hit_dist <= closest_distance {
                         hits.push((n, hit_dist + distance_traveled));
                     }
                 }
 
-                if let Some(reflection) = room[ci_t_index].ray_reflection(&r) {
+                if let Some(reflection) = obj.ray_reflection(&r) {
                     r = reflection;
                 };
             }
