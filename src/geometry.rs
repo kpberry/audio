@@ -62,10 +62,11 @@ impl P {
         let v = &t.c - &t.a;
         let w = self - &t.a;
         let n = u.cross(&v);
+        let n2 = n.n2();
 
-        let gamma = u.cross(&w).dot(&n) / n.n2();
+        let gamma = u.cross(&w).dot(&n) / n2;
         if 0. <= gamma && gamma <= 1. {
-            let beta = w.cross(&v).dot(&n) / n.n2();
+            let beta = w.cross(&v).dot(&n) / n2;
             if 0. <= beta && beta <= 1. {
                 let alpha = 1. - gamma - beta;
                 if 0. <= alpha && alpha <= 1. {
@@ -304,17 +305,17 @@ impl Visible for T {
     fn ray_intersection(&self, r: &L) -> Option<P> {
         let n = self.normal();
         let rv = r.v();
-        let num = (&self.a - &r.a).dot(&n);
-        let den = rv.dot(&n);
-        let mut d = 0.;
-        if den == 0. {
-            if num != 0. {
+        let nd = (&self.a - &r.a).dot(&n); // normal distance to the plane
+        let nv = rv.dot(&n); // normal velocity toward the plane
+        let mut t = 0.;
+        if nv == 0. {
+            if nd != 0. {
                 return None;
             }
         } else {
-            d = num / den;
+            t = nd / nv; // time taken to reach the plane
         }
-        let i = &r.a + &(&rv * d);
+        let i = &r.a + &(&rv * t);
         if rv.dot(&(&i - &r.a)) > 0. && self.contains(&i) {
             Some(i)
         } else {
