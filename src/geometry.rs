@@ -349,7 +349,7 @@ pub struct Q {
 }
 
 impl Q {
-    pub fn new(a: P, b: P, c: P, d: P) -> Q {
+    pub fn cw(a: P, b: P, c: P, d: P) -> Q {
         // quad defined by clockwise coordinates starting from top left
         Q {
             // we only need to clone the points which both triangles share
@@ -362,7 +362,7 @@ impl Q {
             tb: T {
                 a: b,
                 b: c,
-                c: d
+                c: d,
             },
         }
     }
@@ -427,34 +427,31 @@ impl Display for S {
     }
 }
 
-pub fn make_box(w: f64, h: f64, d: f64, c: P, f: bool) -> Vec<Q> {
+pub fn make_box(w: f64, h: f64, d: f64, c: P) -> Vec<Q> {
     let woff = V::new(w, 0., 0.);
     let hoff = V::new(0., h, 0.);
     let doff = V::new(0., 0., d);
-    let mut result = vec![
-        Q::new(c.clone(), &c + &woff, &c + &(&woff + &hoff), &c + &hoff), // back
-        Q::new(
+    vec![
+        Q::cw(c.clone(), &c + &woff, &c + &(&woff + &hoff), &c + &hoff), // back
+        Q::cw(
             &c + &woff,
             &c + &(&woff + &hoff),
             &c + &(&woff + &(&hoff + &doff)),
             &c + &(&woff + &doff),
         ), // right
-        Q::new(c.clone(), &c + &hoff, &c + &(&hoff + &doff), &c + &doff), // left
-        Q::new(c.clone(), &c + &doff, &c + &(&woff + &doff), &c + &woff), // top,
-        Q::new(
+        Q::cw(c.clone(), &c + &hoff, &c + &(&hoff + &doff), &c + &doff), // left
+        Q::cw(c.clone(), &c + &doff, &c + &(&woff + &doff), &c + &woff), // top,
+        Q::cw(
             &c + &hoff,
             &c + &(&hoff + &doff),
             &c + &(&woff + &(&hoff + &doff)),
             &c + &(&woff + &hoff),
         ), // bottom
-    ];
-    if f {
-        result.push(Q::new(
+        Q::cw(
             &c + &doff,
             &c + &(&woff + &doff),
             &c + &(&woff + &(&hoff + &doff)),
             &c + &(&hoff + &doff),
-        ));
-    }
-    return result;
+        ), // front
+    ]
 }
