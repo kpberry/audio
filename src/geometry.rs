@@ -344,23 +344,15 @@ impl Display for T {
 }
 
 pub struct Q {
-    pub a: P,
-    pub b: P,
-    pub c: P,
-    pub d: P,
     ta: T,
     tb: T,
 }
 
 impl Q {
-    fn new(a: P, b: P, c: P, d: P) -> Q {
+    pub fn new(a: P, b: P, c: P, d: P) -> Q {
         Q {
-            a: a.clone(),
-            b: b.clone(),
-            c: c.clone(),
-            d: d.clone(),
             // we can strategically skip some clones here
-            // equivalent to T {a: a, b: b, c: c} and T {a: a, b: c, c: d}
+            // equivalent to T {a: a, b: b, c: c} and T {a: a, b: d, c: c}
             ta: T {
                 a: a.clone(),
                 b,
@@ -368,8 +360,8 @@ impl Q {
             },
             tb: T {
                 a,
-                b: c,
-                c: d.clone(),
+                b: d,
+                c
             },
         }
     }
@@ -387,7 +379,7 @@ impl Visible for Q {
 
 impl Display for Q {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "Q({}, {}, {}, {})", self.a, self.b, self.c, self.d)
+        write!(f, "Q({}, {}, {}, {})", self.ta.a, self.ta.b, self.ta.c, self.tb.c)
     }
 }
 
