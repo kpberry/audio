@@ -28,7 +28,7 @@ impl P {
     }
 
     pub fn ray_dist(&self, r: &L) -> f64 {
-        (&(self - &r.a) - &(&self.lproj(r) - &r.a)).n()
+        (self - &self.lproj(r)).n()
     }
 
     pub fn line_dist(&self, l: &L) -> f64 {
