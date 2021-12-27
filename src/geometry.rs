@@ -350,18 +350,19 @@ pub struct Q {
 
 impl Q {
     pub fn new(a: P, b: P, c: P, d: P) -> Q {
+        // quad defined by clockwise coordinates starting from top left
         Q {
-            // we can strategically skip some clones here
-            // equivalent to T {a: a, b: b, c: c} and T {a: a, b: d, c: c}
+            // we only need to clone the points which both triangles share
+            // equivalent to T {a: a, b: b, c: d} and T {a: b, b: c, c: d}
             ta: T {
-                a: a.clone(),
-                b,
-                c: c.clone(),
+                a,
+                b: b.clone(),
+                c: d.clone(),
             },
             tb: T {
-                a,
-                b: d,
-                c
+                a: b,
+                b: c,
+                c: d
             },
         }
     }
