@@ -64,8 +64,10 @@ pub fn profile_room(
     let max_distance = max_delay * speed_of_sound;
     let inv_speed_of_sound = 1.0 / speed_of_sound;
 
-    for o in 0..samples {
-        println!("{}", o);
+    for s in 0..=samples {
+        if s % 1000 == 0 {
+            println!("{}/{}", s, samples);
+        }
         let u: f64 = rng.gen_range(-1.0..1.0);
         let t: f64 = rng.gen_range(0.0..PI);
 
