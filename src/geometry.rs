@@ -22,14 +22,9 @@ impl P {
         &l.a + &(self - &l.a).proj(&l.v())
     }
 
-    pub fn tproj(&self, t: &T) -> P {
-        let ap = self - &t.a;
-        &t.a + &(&ap - &ap.proj(&t.normal()))
-    }
-
-    pub fn pproj(&self, t: &T) -> P {
-        // projection onto plane defined by triangle t
-        self.tproj(t)
+    pub fn pproj(&self, p: &P, n: &V) -> P {
+        let pa = self - p;
+        p + &(&pa - &pa.proj(n))
     }
 
     pub fn ray_dist(&self, r: &L) -> f64 {
@@ -52,9 +47,8 @@ impl P {
         }
     }
 
-    pub fn plane_dist(&self, t: &T) -> f64 {
-        // dist to plane defined by triangle t
-        (&(self - &t.a) - &(&self.pproj(t) - &t.a)).n()
+    pub fn plane_dist(&self, p: &P, n: &V) -> f64 {
+        (self - p).proj(n).n()
     }
 
     pub fn triangle_dist(&self, t: &T) -> f64 {
@@ -70,7 +64,7 @@ impl P {
             if 0. <= beta && beta <= 1. {
                 let alpha = 1. - gamma - beta;
                 if 0. <= alpha && alpha <= 1. {
-                    return self.plane_dist(&t);
+                    return self.plane_dist(&t.a, &t.normal());
                 }
             }
         }
