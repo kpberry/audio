@@ -72,3 +72,66 @@ fn test_rfft_convolve() {
     assert_eq!(expected.len(), convolved.len());
     assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-7));
 }
+
+pub fn fft_convolve_real_time(signal: &Vec<Complex<f64>>, kernel: &Vec<Complex<f64>>,
+                              sample_size: usize, planner: &mut FftPlanner<f64>) -> Vec<Complex<f64>> {
+    let start_index = signal.len().saturating_sub(kernel.len() + sample_size);
+    let kernel_samples: Vec<Complex<f64>> = signal.iter().skip(start_index).cloned().collect();
+    let response = fft_convolve(&kernel_samples, &kernel, planner);
+    response.iter().skip(response.len() - kernel.len() - sample_size + 1).take(sample_size).cloned().collect()
+}
+
+pub fn rfft_convolve_real_time(signal: &Vec<f64>, kernel: &Vec<f64>, sample_size: usize,
+                               planner: &mut FftPlanner<f64>) -> Vec<f64> {
+    let start_index = signal.len().saturating_sub(kernel.len() + sample_size);
+    let kernel_samples: Vec<f64> = signal.iter().skip(start_index).cloned().collect();
+    let response = rfft_convolve(&kernel_samples, &kernel, planner);
+    response.iter().skip(response.len() - kernel.len() - sample_size + 1).take(sample_size).cloned().collect()
+}
+
+
+#[test]
+fn test_rfft_convolve_real_time() {
+    fn full_rfft_convolve_real_time(signal: &Vec<f64>, kernel: &Vec<f64>, sample_size: usize,
+                                    planner: &mut FftPlanner<f64>) -> Vec<f64> {
+        let mut signal_buffer = vec![0.0; kernel.len()];
+        let mut output_buffer = Vec::new();
+        for i in (0..signal.len()).step_by(sample_size) {
+            let samples: Vec<f64> = signal.iter().skip(i).take(sample_size).cloned().collect();
+            let samples_len = samples.len();
+            signal_buffer.extend(samples);
+            let response = rfft_convolve_real_time(&signal_buffer, kernel, samples_len, planner);
+            output_buffer.extend(response);
+        }
+        output_buffer
+    }
+
+    let convolved = full_rfft_convolve_real_time(
+        &vec![
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7., 8.,
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7., 8.,
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7., 8.,
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7., 8.,
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7.,
+        ],
+        &vec![
+            1., 2., 3., 4., 5., 6., 7., 8., 1., 2., 3., 4., 5., 6., 7., 8.,
+        ],
+        5,
+        &mut FftPlanner::new(),
+    );
+    let expected = vec![
+        1.00, 4.00, 10.00, 20.00, 35.00, 56.00, 84.00, 120.00, 149.00, 172.00, 190.00,
+        204.00, 215.00, 224.00, 232.00, 240.00, 296.00, 336.00, 360.00, 368.00, 360.00,
+        336.00, 296.00, 240.00, 296.00, 336.00, 360.00, 368.00, 360.00, 336.00, 296.00,
+        240.00, 296.00, 336.00, 360.00, 368.00, 360.00, 336.00, 296.00, 240.00, 296.00,
+        336.00, 360.00, 368.00, 360.00, 336.00, 296.00, 240.00, 296.00, 336.00, 360.00,
+        368.00, 360.00, 336.00, 296.00, 240.00, 296.00, 336.00, 360.00, 368.00, 360.00,
+        336.00, 296.00, 240.00, 296.00, 336.00, 360.00, 368.00, 360.00, 336.00, 296.00,
+        240.00, 296.00, 336.00, 360.00, 368.00, 360.00, 336.00, 296.00, 232.00, 279.00,
+        308.00, 318.00, 308.00, 277.00, 224.00, 148.00, 112.00, 131.00, 140.00, 138.00,
+        124.00, 97.00, 56.00,
+    ];
+    assert!(convolved.len() >= expected.len() - 16);
+    assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-7));
+}
