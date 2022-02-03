@@ -4,10 +4,14 @@ version = "0.1.0"
 authors = ["Kevin Berry <kpberry11@gmail.com>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 rand = "*"
 portaudio = "*"
 num = "*"
 rustfft = "*"
+wav = "*"
+vst = "0.2.1"
+
+[lib]
+name = "RayVerb"
+crate-type = ["cdylib"]

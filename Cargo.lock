@@ -10,6 +10,8 @@ dependencies = [
  "portaudio",
  "rand 0.8.3",
  "rustfft",
+ "vst",
+ "wav",
 ]
 
 [[package]]
@@ -23,6 +25,18 @@ name = "bitflags"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aad18937a628ec6abcd26d1489012cc0e18c21798210f491af69ded9b881106d"
+
+[[package]]
+name = "bitflags"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
+
+[[package]]
+name = "cc"
+version = "1.0.72"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22a9137b95ea06864e018375b72adfb7db6e6f68cfc8df5a04d00288050485ee"
 
 [[package]]
 name = "cfg-if"
@@ -52,6 +66,25 @@ name = "libc"
 version = "0.2.94"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18794a8ad5b29321f790b55d93dfba91e125cb1a9edbd4f8e3150acc771c1a5e"
+
+[[package]]
+name = "libloading"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f2b111a074963af1d37a139918ac6d49ad1d0d5e47f72fd55388619691a7d753"
+dependencies = [
+ "cc",
+ "winapi",
+]
+
+[[package]]
+name = "log"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+dependencies = [
+ "cfg-if",
+]
 
 [[package]]
 name = "num"
@@ -152,7 +185,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d289315f6155a7608b6d8757786c79ed2243afeab8a5eda8989effda3fdc5c3"
 dependencies = [
- "bitflags",
+ "bitflags 0.7.0",
  "libc",
  "num",
  "pkg-config",
@@ -251,6 +284,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "riff"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9b1a3d5f46d53f4a3478e2be4a5a5ce5108ea58b100dcd139830eae7f79a3a1"
+
+[[package]]
 name = "rustc-serialize"
 version = "0.3.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -287,10 +326,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "vst"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1dfeaf21be445e1d9edf37bdedbf7ec24b43ed84ace6295cba3e0d01c1a49a27"
+dependencies = [
+ "bitflags 1.3.2",
+ "libc",
+ "libloading",
+ "log",
+ "num-traits",
+]
+
+[[package]]
 name = "wasi"
 version = "0.10.2+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd6fbd9a79829dd1ad0cc20627bf1ed606756a7f77edff7b66b7064f9cb327c6"
+
+[[package]]
+name = "wav"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a65e199c799848b4f997072aa4d673c034f80f40191f97fe2f0a23f410be1609"
+dependencies = [
+ "riff",
+]
 
 [[package]]
 name = "winapi"
