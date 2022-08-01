@@ -7,3 +7,4 @@ mod raytracing;
 mod convolution;
 mod rayverb_plugin;
 mod tuning;
+mod audio;
