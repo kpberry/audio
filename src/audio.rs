@@ -3,9 +3,9 @@ use std::io::{Error, ErrorKind, Read, Seek, Write};
 use wav::{BitDepth, Header};
 
 pub struct Audio {
-    samples: Vec<Vec<f32>>,
-    header: Header,
-    bit_depth: u8,
+    pub samples: Vec<Vec<f32>>,
+    pub header: Header,
+    pub bit_depth: u8,
 }
 
 impl Audio {
@@ -60,7 +60,6 @@ impl Audio {
         }
 
         let n_samples = samples[0].len();
-        println!("{}", raw_samples.len());
         for channel_samples in &samples {
             if channel_samples.len() != n_samples {
                 return Err(Error::new(
