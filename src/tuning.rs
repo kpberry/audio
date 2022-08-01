@@ -58,51 +58,36 @@ pub trait NamingSystem {
 
 #[derive(Debug)]
 pub struct NoteNames {
-    name_to_position_map: HashMap<String, f64>,
+    names_to_positions: HashMap<String, f64>,
 }
 
-// TODO this can be cleaned up a lot with Result
 impl NamingSystem for NoteNames {
     fn standardize_name(&self, name: &str) -> Option<String> {
         let name = name.to_uppercase();
-        if name.len() == 1 {
-            Some(name)
-        } else if name.len() == 2 {
-            if let (Some(first), Some(second)) = (name.chars().next(), name.chars().last()) {
-                let second = match second {
-                    'B' => '♭',
-                    '#' => '♯',
-                    '♭' => '♭',
-                    '♯' => '♯',
-                    _ => ' ',
+        match name.len() {
+            1 => Some(name),
+            2 => {
+                let chars: Vec<char> = name.chars().collect();
+                let (note, accidental) = (chars[0], chars[1]);
+                let accidental = match accidental {
+                    'B' | '♭' => Some('♭'),
+                    '#' | '♯' => Some('♯'),
+                    '♮' => Some('♮'),
+                    _ => None,
                 };
-                if second != ' ' {
-                    Some([first, second].iter().collect())
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        } else {
-            None
+                accidental.map(|accidental| format!("{}{}", note, accidental))
+            },
+            _ => None
         }
     }
 
     fn name_to_position(&self, name: &str) -> Option<f64> {
-        if let Some(name) = &self.standardize_name(name) {
-            match self.name_to_position_map.get(name) {
-                Some(&position) => Some(position),
-                None => None,
-            }
-        } else {
-            None
-        }
+        self.standardize_name(name).map(|name| self.names_to_positions.get(&name).map(|&position| position))?
     }
 }
 
 fn western_naming_system() -> NoteNames {
-    let name_to_position_map = vec![
+    let names_to_positions = vec![
         (String::from("B♯"), 0.0),
         (String::from("C"), 0.0),
         (String::from("C♯"), 1.0),
@@ -128,7 +113,7 @@ fn western_naming_system() -> NoteNames {
     .into_iter()
     .collect();
     NoteNames {
-        name_to_position_map,
+        names_to_positions,
     }
 }
 
