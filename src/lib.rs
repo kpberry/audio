@@ -2,23 +2,12 @@
 extern crate vst;
 
 use std::cell::RefCell;
-use std::ffi::c_void;
-use std::fs;
-use std::fs::{File, OpenOptions};
-use std::io::Write;
-use std::sync::{Arc, Mutex};
-use std::sync::atomic::AtomicUsize;
-use std::time::Instant;
+use std::sync::Arc;
 
-use rand::random;
 use rustfft::FftPlanner;
-use vst::api::{Events, Supported};
 use vst::buffer::AudioBuffer;
-use vst::channels::ChannelInfo;
-use vst::editor::Editor;
-use vst::plugin::{CanDo, HostCallback, Info, Plugin, PluginParameters};
+use vst::plugin::{HostCallback, Info, Plugin, PluginParameters};
 use vst::util::AtomicFloat;
-use wav::{BitDepth, Header, WAV_FORMAT_IEEE_FLOAT};
 
 use crate::convolution::{rfft_convolve};
 use crate::geometry::{make_box, P, Q, Visible};
@@ -262,7 +251,7 @@ impl Plugin for RayVerb {
         let mut next_signal_buffers: Vec<Vec<f64>> = Vec::new();
         let mut planner = self.planner.borrow_mut();
 
-        for ((input_buffer, mut output_buffer), signal_buffer) in buffer.zip().zip(&*self.signal_buffers) {
+        for ((input_buffer, output_buffer), signal_buffer) in buffer.zip().zip(&*self.signal_buffers) {
             let start_index = signal_buffer.len().saturating_sub(kernel.len());
             let signal = signal_buffer.iter()
                 .skip(start_index)

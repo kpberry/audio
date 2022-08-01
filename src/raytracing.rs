@@ -76,7 +76,7 @@ pub fn profile_room(
         let z = u;
 
         let p = P { x, y, z };
-        let mut r = L {
+        let r = L {
             a: speaker.clone(),
             b: speaker + &p,
         };

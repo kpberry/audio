@@ -1,9 +1,5 @@
-use std::f64::consts::PI;
-
-use num::integer::Roots;
 use num::Zero;
-use rand::seq::index::sample;
-use rustfft::{Direction, Fft, FftPlanner, num_complex::Complex};
+use rustfft::{FftPlanner, num_complex::Complex};
 
 pub fn fft_convolve(signal: &Vec<Complex<f64>>, kernel: &Vec<Complex<f64>>,
                     planner: &mut FftPlanner<f64>) -> Vec<Complex<f64>> {
