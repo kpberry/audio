@@ -6,12 +6,9 @@ edition = "2018"
 
 [dependencies]
 rand = "*"
-portaudio = "*"
 num = "*"
 rustfft = "*"
 wav = "*"
-vst = "0.2.1"
 
 [lib]
-name = "RayVerb"
-crate-type = ["cdylib"]
+name = "audio"
