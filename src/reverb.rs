@@ -5,7 +5,7 @@ use rustfft::FftPlanner;
 use wav::BitDepth;
 
 use crate::convolution::rfft_convolve;
-use crate::geometry::{ make_box, P, Q, S, Visible};
+use crate::geometry::{ make_box, P, Q, Visible};
 use crate::raytracing::profile_room;
 
 

@@ -126,13 +126,12 @@ impl Audio {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, path::Path, time::Instant};
+    use std::{fs::File, path::Path};
 
     use super::Audio;
 
     #[test]
     fn test_audio_from_wav() {
-        let t0 = Instant::now();
         let mut file = File::open(Path::new("data/3.wav")).unwrap();
         Audio::from_wav(&mut file).unwrap();
     }

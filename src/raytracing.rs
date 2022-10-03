@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 use rand::Rng;
-use crate::geometry::{L, P, S, Visible};
+use crate::geometry::{L, P, Visible};
 
 pub fn forward_ray_trace(
     r: &L,
