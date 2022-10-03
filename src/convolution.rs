@@ -1,40 +1,40 @@
 use num::Zero;
 use rustfft::{FftPlanner, num_complex::Complex};
 
-pub fn fft_convolve(signal: &Vec<Complex<f64>>, kernel: &Vec<Complex<f64>>,
-                    planner: &mut FftPlanner<f64>) -> Vec<Complex<f64>> {
+pub fn fft_convolve(signal: &[Complex<f32>], kernel: &[Complex<f32>],
+                    planner: &mut FftPlanner<f32>) -> Vec<Complex<f32>> {
     // the lengths here are very important; don't change them unless you know what you're doing
     let len = signal.len() + kernel.len() - 1;
     let buf_len = len.next_power_of_two();
     let fft = planner.plan_fft_forward(buf_len);
     let ifft = planner.plan_fft_inverse(buf_len);
 
-    let mut f_signal: Vec<Complex<f64>> = signal.iter().cloned()
+    let mut f_signal: Vec<Complex<f32>> = signal.iter().cloned()
         .chain(std::iter::repeat(Complex::zero()))
         .take(buf_len)
         .collect();
     fft.process(&mut f_signal);
 
-    let mut f_kernel: Vec<Complex<f64>> = kernel.iter().cloned()
+    let mut f_kernel: Vec<Complex<f32>> = kernel.iter().cloned()
         .chain(std::iter::repeat(Complex::zero()))
         .take(buf_len)
         .collect();
     fft.process(&mut f_kernel);
 
     // we have to manually normalize before doing the inverse fft
-    let norm = 1. / buf_len as f64;
-    let mut normed_product: Vec<Complex<f64>> = f_signal.iter().zip(f_kernel)
+    let norm = 1. / buf_len as f32;
+    let mut normed_product: Vec<Complex<f32>> = f_signal.iter().zip(f_kernel)
         .map(|(x, y)| x * y * norm)
         .collect();
     ifft.process(&mut normed_product);
     normed_product.into_iter().take(len).collect()
 }
 
-pub fn rfft_convolve(signal: &Vec<f64>, kernel: &Vec<f64>,
-                     planner: &mut FftPlanner<f64>) -> Vec<f64> {
+pub fn rfft_convolve(signal: &[f32], kernel: &[f32],
+                     planner: &mut FftPlanner<f32>) -> Vec<f32> {
     fft_convolve(
-        &signal.iter().map(|&x| Complex::new(x, 0.0)).collect(),
-        &kernel.iter().map(|&y| Complex::new(y, 0.0)).collect(),
+        &signal.iter().map(|&x| Complex::new(x, 0.0)).collect::<Vec<Complex<f32>>>(),
+        &kernel.iter().map(|&y| Complex::new(y, 0.0)).collect::<Vec<Complex<f32>>>(),
         planner,
     ).iter().map(|p| p.re).collect()
 }
@@ -70,16 +70,16 @@ fn test_rfft_convolve() {
     assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-7));
 }
 
-fn rfft_convolve_real_time(signal: &Vec<f64>, kernel: &Vec<f64>, sample_size: usize,
-                           planner: &mut FftPlanner<f64>) -> Vec<f64> {
+fn rfft_convolve_real_time(signal: &[f32], kernel: &[f32], sample_size: usize,
+                           planner: &mut FftPlanner<f32>) -> Vec<f32> {
     let mut input_buffers = Vec::new();
     let mut output_buffers = Vec::new();
     for i in (0..signal.len()).step_by(sample_size) {
-        let input_buffer: Vec<f64> = signal.iter().skip(i).take(sample_size).cloned().collect();
+        let input_buffer: Vec<f32> = signal.iter().skip(i).take(sample_size).cloned().collect();
         let buf_len = input_buffer.len();
         input_buffers.push(input_buffer);
 
-        let output_buffer: Vec<f64> = vec![0.0; buf_len];
+        let output_buffer: Vec<f32> = vec![0.0; buf_len];
         output_buffers.push(output_buffer);
     }
 
