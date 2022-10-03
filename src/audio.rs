@@ -34,7 +34,9 @@ impl Audio {
                 Ok(samples
                     .iter()
                     .cloned()
-                    .map(|s| s as f32 / 8388607.0)
+                    // we have to divide by an extra 128 because the wav crate reads bytes in the wrong order
+                    // TODO submit a pull request to fix this
+                    .map(|s| (s as f64 / 8388607.0 / 128.0) as f32)
                     .collect()),
             ),
             wav::BitDepth::ThirtyTwoFloat(samples) => (32, Ok(samples.iter().cloned().collect())),
@@ -108,7 +110,8 @@ impl Audio {
                 raw_samples
                     .iter()
                     .cloned()
-                    .map(|s| (s * 8388607.) as i32)
+                    // we have to multiply by an extra 128 because the wav crate reads bytes in the wrong order
+                    .map(|s| (s * 8388607. * 128.0) as i32)
                     .collect(),
             )),
             32 => Ok(BitDepth::ThirtyTwoFloat(
