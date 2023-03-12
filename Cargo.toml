@@ -9,6 +9,7 @@ rand = "*"
 num = "*"
 rustfft = "*"
 wav = "*"
+parry3d = "*"
 
 [lib]
 name = "audio"

@@ -1,61 +1,32 @@
+use parry3d::bounding_volume::Aabb;
+use parry3d::math::Point;
+use parry3d::query::RayCast;
 use rustfft::FftPlanner;
 use std::time::Instant;
 use std::{fs::File, path::Path};
 
 use crate::audio::Audio;
 use crate::convolution::rfft_convolve;
-use crate::geometry::{make_box, Visible, P, Q};
 use crate::raytracing::profile_room;
 
 pub fn demo(path: &Path) {
-    let room = make_box(
-        10.,
-        10.,
-        10.,
-        P {
-            x: 0.,
-            y: 0.,
-            z: 0.,
-        },
-    );
-    let room_ref = room.iter().map(|r| r as &dyn Visible).collect();
-    let speaker = P {
-        x: 5.,
-        y: 5.,
-        z: 1.,
-    };
-    let microphone = Q::cw(
-        P {
-            x: 4.8,
-            y: 5.2,
-            z: 9.,
-        },
-        P {
-            x: 5.2,
-            y: 5.2,
-            z: 9.,
-        },
-        P {
-            x: 5.2,
-            y: 4.8,
-            z: 9.,
-        },
-        P {
-            x: 4.8,
-            y: 4.8,
-            z: 9.,
-        },
-    );
+    let room = Aabb::new(Point::new(0.0, 0.0, 0.0), Point::new(10.0, 10.0, 100.0));
+    let speaker = Point::new(5.0, 5.0, 1.0);
+    let microphone = Aabb::new(Point::new(4.9, 4.9, 99.0), Point::new(5.1, 5.1, 99.1));
+
+    let mut geometry: Vec<&dyn RayCast> = Vec::new();
+    geometry.push(&room);
+
     let t = Instant::now();
     let kernel = profile_room(
-        &room_ref,
+        &geometry,
         &speaker,
         &microphone,
-        100000,
+        1000,
         1000,
         100.,
         343.,
-        0.1,
+        0.01,
         1000.,
         44100.,
     );
@@ -78,9 +49,7 @@ pub fn demo(path: &Path) {
             .collect::<Vec<f32>>(),
     );
     let mut planner: FftPlanner<f32> = FftPlanner::new();
-    // let reverbed1 = rfft_convolve_real_time(&samples, &kernel, 100000, &planner);
     let reverbed = rfft_convolve(&samples, &kernel, &mut planner);
-    // assert!(reverbed1.iter().zip(reverbed.iter()).all(|(a, b)| (a - b).abs() < 1e-7));
     let reverbed = normalize(&reverbed);
 
     audio.samples[0] = reverbed.clone();
