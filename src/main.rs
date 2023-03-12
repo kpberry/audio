@@ -1,7 +1,6 @@
 pub mod audio;
 mod convolution;
 mod filters;
-mod geometry;
 pub mod noise;
 mod raytracing;
 mod reverb;
