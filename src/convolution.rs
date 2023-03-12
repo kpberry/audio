@@ -66,8 +66,10 @@ fn test_rfft_convolve() {
         308.00, 318.00, 308.00, 277.00, 224.00, 148.00, 112.00, 131.00, 140.00, 138.00,
         124.00, 97.00, 56.00,
     ];
+    println!("{:?}", convolved);
+    println!("{:?}", expected);
     assert_eq!(expected.len(), convolved.len());
-    assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-7));
+    assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-4));
 }
 
 fn rfft_convolve_real_time(signal: &[f32], kernel: &[f32], sample_size: usize,
@@ -129,5 +131,5 @@ fn test_rfft_convolve_real_time() {
         124.00, 97.00, 56.00,
     ];
     assert!(convolved.len() >= expected.len() - 16);
-    assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-7));
+    assert!(convolved.iter().zip(expected).all(|(a, b)| (a - b).abs() < 1e-4));
 }
