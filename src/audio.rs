@@ -9,6 +9,10 @@ pub struct Audio {
 }
 
 impl Audio {
+    pub fn apply(&mut self, f: fn(&[f32]) -> Vec<f32>) {
+        self.samples = self.samples.iter().map(|s| f(s)).collect();
+    }
+
     pub fn from_wav<R: Read + Seek>(mut stream: &mut R) -> Result<Audio, std::io::Error> {
         let (header, data) = wav::read(&mut stream)?;
 
